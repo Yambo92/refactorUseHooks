@@ -6,19 +6,32 @@ import PostList from './post/PostList'
 import Header from './Header'
 import ChangeTheme from './ChangeTheme'
 import { ThemeContext, StateContext } from './contexts'
+import { useResource } from 'react-request-hook'
 
-const defaultPosts = [
-  { title: 'React Hooks', content: 'The greatest thing since sliced bread!', author: 'Daniel Bugl' },
-  { title: 'Using React Fragments', content: 'Keeping the DOM tree clean!', author: 'Daniel Bugl' }
- ]
 
 export default function App () {
   const [ theme, setTheme ] = useState({
     primaryColor: 'deepskyblue',
     secondaryColor: 'coral'
   })
-  const [ state, dispatch ] = useReducer(appReducer, { user: '', posts: defaultPosts })
-  const { user, posts } = state;
+  const [ state, dispatch ] = useReducer(appReducer, { user: '', posts: [], error: '' })
+  const { user, error } = state;
+
+  const [ posts, getPosts ] = useResource(() => ({
+    url: '/posts',
+    method: 'get'
+  }))
+
+  useEffect(getPosts, [])
+
+  useEffect(() => {
+    if(posts && posts.error) {
+      dispatch({ type: 'POSTS_ERROR' })
+    }
+    if(posts && posts.data) {
+      dispatch({ type: 'FETCH_POSTS', posts: posts.data.reverse() })
+    }
+  }, [posts])
 
   useEffect(() => {
     if(user) {
@@ -40,6 +53,7 @@ export default function App () {
           { user && <CreatePost />}
           <br />
           <hr />
+          {error && <b>{error}</b>}
           <PostList/>
         </div>
       </ThemeContext.Provider>
