@@ -1,26 +1,50 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React, { useEffect, useReducer, useState } from 'react'
+import appReducer from './reducers'
+import UserBar from './user/UserBar'
+import CreatePost from './post/CreatePost'
+import PostList from './post/PostList'
+import Header from './Header'
+import ChangeTheme from './ChangeTheme'
+import { ThemeContext, StateContext } from './contexts'
 
-function App() {
+const defaultPosts = [
+  { title: 'React Hooks', content: 'The greatest thing since sliced bread!', author: 'Daniel Bugl' },
+  { title: 'Using React Fragments', content: 'Keeping the DOM tree clean!', author: 'Daniel Bugl' }
+ ]
+
+export default function App () {
+  const [ theme, setTheme ] = useState({
+    primaryColor: 'deepskyblue',
+    secondaryColor: 'coral'
+  })
+  const [ state, dispatch ] = useReducer(appReducer, { user: '', posts: defaultPosts })
+  const { user, posts } = state;
+
+  useEffect(() => {
+    if(user) {
+      document.title = `${user} = React Hooks Blog`
+    } else {
+      document.title = 'React Hooks Blog'
+    }
+  }, [user])
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+    <StateContext.Provider value={{ state, dispatch }}>
+      <ThemeContext.Provider value={theme}>
+        <div style={{ padding: 8 }}>
+          <Header text="React Hooks Blog" />
+          <ChangeTheme theme={theme} setTheme={setTheme} />
+          <br/>
+          <UserBar />
+          <br />
+          { user && <CreatePost />}
+          <br />
+          <hr />
+          <PostList/>
+        </div>
+      </ThemeContext.Provider>
+    </StateContext.Provider>
+    
+    
+  ) 
 }
-
-export default App;
